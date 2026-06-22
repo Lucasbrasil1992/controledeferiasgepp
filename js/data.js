@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════
+   data.js  –  dados da equipe + persistência
+   ═══════════════════════════════════════════ */
+
 const TEAM = [
   { mat:"16831071", name:"THABATTA SOARES DE MORAES",   short:"THABATTA",  cargo:"Técnico Administrativo", carga:40, seniority:1, filhos:true,
     cats:["MATMED","OPME","Odonto","Laboratório","Nutrição","Judicial","Troca de Marca"] },
@@ -15,7 +19,7 @@ const TEAM = [
     cats:["Medicamento","MATMED","Renovação","Serviços","Judicial","Equipamento"] },
   { mat:"17093570", name:"YURI BARROS BRANDANI",        short:"YURI",      cargo:"Especialista - Administrador", carga:40, seniority:8, filhos:true,
     cats:["Medicamento","MATMED","Renovação","Serviços","Judicial","Equipamento"] },
-  { mat:"17112176", name:"RICARDO ANTUNES DE ALMEIDA",  short:"RICARDO",   cargo:"Especialista - Contador", carga:40, seniority:9, filhos:true,
+  { mat:"17112176", name:"RICARDO ANTUNES DE ALMEIDA",  short:"RICARDO",   cargo:"Especialista - Contador",      carga:40, seniority:9, filhos:true,
     cats:["Medicamento","MATMED","Renovação","Serviços","Judicial","Equipamento"] },
   { mat:"16865472", name:"ERIVALDO MARQUES CAVALCANTE", short:"ERIVALDO",  cargo:"Técnico Administrativo", carga:20, seniority:10, filhos:false,
     cats:["Medicamento"] },
@@ -26,6 +30,7 @@ const CATS = ["Medicamento","MATMED","Odonto","Laboratório","Nutrição","OPME"
 
 const SENHA_GERENCIA = "gepp2026";
 
+/* ── localStorage persistence ── */
 const LS_KEY = "gepp_ferias_v2";
 
 function loadSolicitacoes() {
@@ -33,10 +38,11 @@ function loadSolicitacoes() {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
+  // seed data
   return [
-    { id:1, mat:"17092566", inicio:"2026-06-30", fim:"2026-07-14", parcela:"1/3", obs:"", status:"Aprovado",  parecer:"Aprovado.", dataParec:"2026-04-01" },
-    { id:2, mat:"16888650", inicio:"2026-07-09", fim:"2026-07-23", parcela:"1/3", obs:"", status:"Aprovado",  parecer:"Aprovado.", dataParec:"2026-04-01" },
-    { id:3, mat:"16865472", inicio:"2026-07-31", fim:"2026-08-14", parcela:"1/3", obs:"", status:"Pendente",  parecer:"",          dataParec:"" },
+    { id:1, mat:"17092566", inicio:"2026-06-30", fim:"2026-07-14", parcela:"1/3", obs:"", status:"Aprovado",  parecer:"Aprovado.",             dataParec:"2026-04-01" },
+    { id:2, mat:"16888650", inicio:"2026-07-09", fim:"2026-07-23", parcela:"1/3", obs:"", status:"Aprovado",  parecer:"Aprovado.",             dataParec:"2026-04-01" },
+    { id:3, mat:"16865472", inicio:"2026-07-31", fim:"2026-08-14", parcela:"1/3", obs:"", status:"Pendente",  parecer:"",                      dataParec:"" },
     { id:4, mat:"16831071", inicio:"2026-12-14", fim:"2026-12-29", parcela:"1/3", obs:"Natal com família", status:"Aprovado", parecer:"Ok.", dataParec:"2026-10-01" },
   ];
 }
@@ -48,6 +54,7 @@ function saveSolicitacoes(list) {
 let solicitacoes = loadSolicitacoes();
 let nextId = Math.max(...solicitacoes.map(s => s.id), 0) + 1;
 
+/* ── helpers ── */
 function getTeam(mat) { return TEAM.find(t => t.mat === mat); }
 
 function diffDays(a, b) {
@@ -67,11 +74,13 @@ function statusTag(s) {
   return `<span class="tag ${map[s]||'tag-canc'}">${s}</span>`;
 }
 
+/* Verifica conflitos para uma solicitação sendo analisada */
 function checkConflitos(sol) {
   const t = getTeam(sol.mat);
   const aprov = solicitacoes.filter(s => s.status === "Aprovado" && s.id !== sol.id);
   const warnings = [];
 
+  // 1. limite de 3 simultâneos
   let d = new Date(sol.inicio);
   const end = new Date(sol.fim);
   while (d <= end) {
@@ -81,6 +90,7 @@ function checkConflitos(sol) {
     d.setDate(d.getDate() + 1);
   }
 
+  // 2. cobertura de categorias
   const overlap = aprov.filter(x => x.inicio <= sol.fim && x.fim >= sol.inicio);
   const catsEmRisco = [];
   for (const cat of t.cats) {
@@ -92,3 +102,22 @@ function checkConflitos(sol) {
 
   return warnings;
 }
+
+const LS_TEAM_KEY = "gepp_team_v2";
+
+function loadTeamOverride() {
+  try {
+    const raw = localStorage.getItem(LS_TEAM_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      TEAM.length = 0;
+      saved.forEach(t => TEAM.push(t));
+    }
+  } catch(e) {}
+}
+
+function saveTeam() {
+  localStorage.setItem(LS_TEAM_KEY, JSON.stringify(TEAM));
+}
+
+loadTeamOverride();
