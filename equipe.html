@@ -34,27 +34,177 @@
     <span class="ano-ref">Ano de Referência: 2026/2027</span>
   </div>
 
-  <div class="card" style="padding:0;overflow:hidden">
-    <div class="table-section-header">
-      <i class="fa-solid fa-users"></i> Quadro de Lotação GEPP
+  <!-- Tabs -->
+  <div class="eq-tabs">
+    <button class="eq-tab active" onclick="switchTab('view',this)">
+      <i class="fa-solid fa-users"></i> Quadro de Lotação
+    </button>
+    <button class="eq-tab" onclick="switchTab('edit',this)" id="tab-edit">
+      <i class="fa-solid fa-shield-halved"></i> Gerenciar Equipe
+      <span class="nav-badge login" style="font-size:9px;margin-left:4px">Restrito</span>
+    </button>
+  </div>
+
+  <!-- TAB: VISUALIZAÇÃO PÚBLICA -->
+  <div id="tab-view">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-section-header">
+        <i class="fa-solid fa-users"></i> Quadro de Lotação GEPP
+      </div>
+      <table class="data-table equipe-table">
+        <thead>
+          <tr>
+            <th style="width:90px">Ordem Antig.</th>
+            <th>Nome</th>
+            <th>Cargo / CH</th>
+            <th>Filhos</th>
+            <th>Categorias de Pesquisa (Skills)</th>
+          </tr>
+        </thead>
+        <tbody id="equipe-tbody"></tbody>
+      </table>
     </div>
-    <table class="data-table equipe-table">
-      <thead>
-        <tr>
-          <th style="width:110px">Ordem Antig.</th>
-          <th>Nome</th>
-          <th>Cargo / CH</th>
-          <th>Filhos</th>
-          <th>Categorias de Pesquisa (Skills)</th>
-        </tr>
-      </thead>
-      <tbody id="equipe-tbody"></tbody>
-    </table>
+  </div>
+
+  <!-- TAB: GERENCIAR (restrito) -->
+  <div id="tab-edit" style="display:none">
+
+    <!-- Login gate -->
+    <div id="eq-login-gate" class="card" style="max-width:400px;margin:0 auto">
+      <div class="form-card-header" style="border-radius:8px 8px 0 0;margin:-1.25rem -1.25rem 1.25rem">
+        <i class="fa-solid fa-shield-halved"></i>
+        <div><h2>Acesso Restrito</h2><p>Área exclusiva da gerência.</p></div>
+      </div>
+      <div class="form-group">
+        <label>Senha de acesso</label>
+        <input type="password" id="eq-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doEqLogin()"/>
+      </div>
+      <div id="eq-err" style="color:#dc2626;font-size:13px;display:none;margin-bottom:8px">Senha incorreta.</div>
+      <button class="btn-primary btn-lg" style="width:100%" onclick="doEqLogin()">
+        <i class="fa-solid fa-lock-open"></i> Entrar
+      </button>
+    </div>
+
+    <!-- Painel de gerenciamento -->
+    <div id="eq-panel" style="display:none">
+
+      <div class="alert-box info" style="margin-bottom:1.25rem">
+        <i class="fa-solid fa-circle-info"></i>
+        Alterações feitas aqui são salvas localmente no navegador e refletem em todo o sistema.
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <span class="card-title"><i class="fa-solid fa-users" style="color:#1B3A8C"></i> Servidores Cadastrados</span>
+          <button class="btn-primary" onclick="openEqModal()">
+            <i class="fa-solid fa-plus"></i> Novo Servidor
+          </button>
+        </div>
+
+        <div style="overflow-x:auto">
+          <table class="data-table" id="eq-manage-table">
+            <thead>
+              <tr>
+                <th style="width:60px">Ordem</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Cargo</th>
+                <th style="width:70px">CH</th>
+                <th style="width:70px">Filhos</th>
+                <th>Categorias (Skills)</th>
+                <th style="width:100px">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="eq-manage-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <div class="card-header-row">
+          <span class="card-title"><i class="fa-solid fa-list-check" style="color:#1B3A8C"></i> Categorias de Pesquisa disponíveis</span>
+        </div>
+        <div id="cats-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
   </div>
 </main>
 
+<!-- MODAL ADICIONAR/EDITAR SERVIDOR -->
+<div class="modal-overlay" id="eq-modal" style="display:none">
+  <div class="modal-box" style="width:600px;max-width:96vw">
+    <h3 id="eq-modal-title">Novo Servidor</h3>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label>Nome completo *</label>
+        <input type="text" id="eq-f-name" placeholder="Ex.: JOAO DA SILVA"/>
+      </div>
+      <div class="form-group">
+        <label>Matrícula *</label>
+        <input type="text" id="eq-f-mat" placeholder="Ex.: 17000000"/>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label>Cargo *</label>
+        <select id="eq-f-cargo">
+          <option value="Técnico Administrativo">Técnico Administrativo</option>
+          <option value="Especialista - Administrador">Especialista - Administrador</option>
+          <option value="Especialista - Contador">Especialista - Contador</option>
+          <option value="Gerente">Gerente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Carga Horária *</label>
+        <select id="eq-f-carga">
+          <option value="40">40h semanais</option>
+          <option value="20">20h semanais</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label>Ordem de Antiguidade *</label>
+        <input type="number" id="eq-f-seniority" min="1" max="99" placeholder="Ex.: 1"/>
+      </div>
+      <div class="form-group">
+        <label>Possui filhos?</label>
+        <select id="eq-f-filhos">
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Nome abreviado (para o calendário) *</label>
+      <input type="text" id="eq-f-short" placeholder="Ex.: JOAO (máx. 10 caracteres)"/>
+    </div>
+    <div class="form-group">
+      <label>Categorias de Pesquisa (Skills)</label>
+      <div id="eq-cats-check" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb"></div>
+    </div>
+    <div id="eq-modal-alert" class="alert-box error" style="display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeEqModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveServidor()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
+<div class="modal-overlay" id="del-modal" style="display:none">
+  <div class="modal-box" style="max-width:420px">
+    <h3 style="color:#dc2626"><i class="fa-solid fa-triangle-exclamation"></i> Confirmar Exclusão</h3>
+    <p style="margin:1rem 0;font-size:14px;color:#374151">Tem certeza que deseja excluir o servidor <strong id="del-name"></strong>? Esta ação não pode ser desfeita.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeDelModal()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDelete()"><i class="fa-solid fa-trash"></i> Excluir</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
-<script>renderEquipe();</script>
+<script>renderEquipe(); initEquipePage();</script>
 </body>
 </html>
