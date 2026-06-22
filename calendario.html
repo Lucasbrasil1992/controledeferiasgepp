@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendário · GEPP / SES-DF</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="ses-logo">SES</div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">Secretaria de Estado<br>de Saúde do DF</span>
+      <span class="brand-sub">GEPP – Pesquisa de Preços</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">NAVEGAÇÃO</div>
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Visão Geral</a>
+    <a href="calendario.html" class="nav-item active"><i class="fa-solid fa-calendar-days"></i> Calendários</a>
+    <div class="nav-section-label">AÇÕES E CONTROLE</div>
+    <a href="pedido.html" class="nav-item"><i class="fa-solid fa-user"></i> Pedir Férias <span class="nav-badge servidor">Servidor</span></a>
+    <a href="aprovacao.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Acesso Restrito <span class="nav-badge login">Login</span></a>
+    <a href="equipe.html" class="nav-item"><i class="fa-solid fa-users"></i> Config: Equipe</a>
+  </nav>
+  <div class="sidebar-footer">Sistema de Férias v2.0</div>
+</aside>
+
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Calendário</h1>
+    <span class="ano-ref">Ano de Referência: 2026/2027</span>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="font-size:16px;font-weight:600;color:#1B3A8C;margin-bottom:4px">Calendário Dinâmico 12 Meses</h2>
+        <p style="font-size:13px;color:#6b7280">Meses passados são ocultados automaticamente.</p>
+      </div>
+      <button class="btn-outline" onclick="window.print()">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <div id="cal-container"></div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>renderCalendario();</script>
+</body>
+</html>

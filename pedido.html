@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pedir Férias · GEPP / SES-DF</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="ses-logo">SES</div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">Secretaria de Estado<br>de Saúde do DF</span>
+      <span class="brand-sub">GEPP – Pesquisa de Preços</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">NAVEGAÇÃO</div>
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Visão Geral</a>
+    <a href="calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendários</a>
+    <div class="nav-section-label">AÇÕES E CONTROLE</div>
+    <a href="pedido.html" class="nav-item active"><i class="fa-solid fa-user"></i> Pedir Férias <span class="nav-badge servidor">Servidor</span></a>
+    <a href="aprovacao.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Acesso Restrito <span class="nav-badge login">Login</span></a>
+    <a href="equipe.html" class="nav-item"><i class="fa-solid fa-users"></i> Config: Equipe</a>
+  </nav>
+  <div class="sidebar-footer">Sistema de Férias v2.0</div>
+</aside>
+
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Pedir Férias</h1>
+    <span class="ano-ref">Ano de Referência: 2026/2027</span>
+  </div>
+
+  <div style="max-width:680px;margin:0 auto">
+    <div class="card form-card">
+      <div class="form-card-header">
+        <i class="fa-solid fa-user-circle"></i>
+        <div>
+          <h2>Solicitação de Férias (Servidor)</h2>
+          <p>Preencha e envie este formulário para que a GEPP analise a viabilidade das suas férias.</p>
+        </div>
+      </div>
+
+      <div class="form-body">
+        <div class="form-group">
+          <label>Seu Nome</label>
+          <select id="f-nome">
+            <option value="">Selecione seu nome na lista da equipe...</option>
+          </select>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input type="date" id="f-inicio"/>
+          </div>
+          <div class="form-group">
+            <label>Data Fim</label>
+            <input type="date" id="f-fim"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Parcela do Exercício</label>
+          <select id="f-parcela">
+            <option value="integral">Integral (30 dias)</option>
+            <option value="1/3">1ª Parcela (mín. 14 dias)</option>
+            <option value="2/3">2ª Parcela (mín. 14 dias)</option>
+            <option value="avulsa">Parcela Avulsa (mín. 5 dias)</option>
+          </select>
+          <span class="form-hint">Lembrete CLT/Regime: Uma das parcelas não pode ser inferior a 14 dias se dividida, e nenhuma menor que 5 dias.</span>
+        </div>
+
+        <div class="form-group">
+          <label>Mais Informações / Justificativa (Opcional)</label>
+          <textarea id="f-obs" rows="4" placeholder="Explique brevemente se há alguma necessidade especial para este período ou se deseja deixar uma mensagem para a chefia..."></textarea>
+        </div>
+
+        <div id="f-alert" class="alert-box" style="display:none"></div>
+        <div id="f-success" class="alert-box success" style="display:none">
+          <i class="fa-solid fa-circle-check"></i> Solicitação enviada com sucesso! Aguarde a análise da gerência.
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:1.5rem">
+          <button class="btn-primary btn-lg" onclick="submitPedido()">
+            <i class="fa-solid fa-paper-plane"></i> Enviar para a Chefia
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minhas solicitações -->
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header-row">
+        <span class="card-title"><i class="fa-solid fa-list-check" style="color:#1B3A8C"></i> Minhas Solicitações</span>
+      </div>
+      <table class="data-table" id="my-sol-table">
+        <thead>
+          <tr><th>Período</th><th>Dias</th><th>Parcela</th><th>Status</th><th>Observação</th></tr>
+        </thead>
+        <tbody id="my-sol-tbody">
+          <tr><td colspan="5" class="empty-row">Selecione seu nome para ver suas solicitações.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>initPedidoPage();</script>
+</body>
+</html>

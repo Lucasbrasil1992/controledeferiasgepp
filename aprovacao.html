@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aprovações · GEPP / SES-DF</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="ses-logo">SES</div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">Secretaria de Estado<br>de Saúde do DF</span>
+      <span class="brand-sub">GEPP – Pesquisa de Preços</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">NAVEGAÇÃO</div>
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Visão Geral</a>
+    <a href="calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendários</a>
+    <div class="nav-section-label">AÇÕES E CONTROLE</div>
+    <a href="pedido.html" class="nav-item"><i class="fa-solid fa-user"></i> Pedir Férias <span class="nav-badge servidor">Servidor</span></a>
+    <a href="aprovacao.html" class="nav-item active"><i class="fa-solid fa-shield-halved"></i> Acesso Restrito <span class="nav-badge login">Login</span></a>
+    <a href="equipe.html" class="nav-item"><i class="fa-solid fa-users"></i> Config: Equipe</a>
+  </nav>
+  <div class="sidebar-footer">Sistema de Férias v2.0</div>
+</aside>
+
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Painel de Aprovações</h1>
+    <span class="ano-ref">Ano de Referência: 2026/2027</span>
+  </div>
+
+  <!-- Login gate -->
+  <div id="login-gate" class="card" style="max-width:420px;margin:2rem auto">
+    <div class="form-card-header" style="border-radius:8px 8px 0 0">
+      <i class="fa-solid fa-shield-halved"></i>
+      <div>
+        <h2>Acesso Restrito</h2>
+        <p>Área exclusiva da gerência GEPP.</p>
+      </div>
+    </div>
+    <div class="form-body">
+      <div class="form-group">
+        <label>Senha de acesso</label>
+        <input type="password" id="login-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div id="login-err" style="color:#dc2626;font-size:13px;display:none;margin-bottom:8px">Senha incorreta.</div>
+      <button class="btn-primary btn-lg" style="width:100%" onclick="doLogin()">
+        <i class="fa-solid fa-lock-open"></i> Entrar
+      </button>
+    </div>
+  </div>
+
+  <!-- Approval panel (hidden until login) -->
+  <div id="aprov-panel" style="display:none">
+    <div class="alert-box info" style="margin-bottom:1.5rem">
+      <i class="fa-solid fa-circle-info"></i>
+      Antes de aprovar verifique: (1) máx. 3 servidores simultâneos, (2) cobertura de categorias, (3) rodízio de prioridade.
+    </div>
+
+    <div class="metric-grid" style="margin-bottom:1.5rem">
+      <div class="metric-card border-yellow">
+        <span class="metric-label">Pendentes</span>
+        <span class="metric-value yellow" id="ap-pend">0</span>
+      </div>
+      <div class="metric-card border-green">
+        <span class="metric-label">Aprovadas</span>
+        <span class="metric-value green" id="ap-aprov">0</span>
+      </div>
+      <div class="metric-card border-red">
+        <span class="metric-label">Reprovadas</span>
+        <span class="metric-value red" id="ap-repr">0</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="data-table" id="aprov-table">
+        <thead>
+          <tr>
+            <th>Servidor</th><th>Cargo</th><th>Período</th><th>Dias</th>
+            <th>Parcela</th><th>Prioridade</th><th>Status</th><th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="aprov-tbody">
+          <tr><td colspan="8" class="empty-row">Nenhuma solicitação encontrada.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header-row"><span class="card-title"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706"></i> Alertas de Conflito</span></div>
+      <div id="conflict-area">
+        <p style="color:#6b7280;font-size:13px">Nenhum conflito detectado.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal parecer -->
+<div class="modal-overlay" id="parecer-overlay" style="display:none">
+  <div class="modal-box">
+    <h3 id="parecer-title">Parecer</h3>
+    <p id="parecer-info" style="font-size:13px;color:#6b7280;margin-bottom:12px"></p>
+    <div id="parecer-alert" class="alert-box" style="display:none;margin-bottom:12px"></div>
+    <div class="form-group">
+      <label>Observação da Gerência (opcional)</label>
+      <textarea id="parecer-obs" rows="3" placeholder="Ex.: Aprovado conforme disponibilidade da equipe."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeParecer()">Cancelar</button>
+      <button class="btn-danger" id="btn-repr" onclick="decidir('Reprovado')"><i class="fa-solid fa-xmark"></i> Reprovar</button>
+      <button class="btn-success" id="btn-aprov" onclick="decidir('Aprovado')"><i class="fa-solid fa-check"></i> Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>initAprovPage();</script>
+</body>
+</html>
