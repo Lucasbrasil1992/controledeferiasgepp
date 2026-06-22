@@ -1,9 +1,15 @@
+/* ═══════════════════════════════════════════
+   app.js  –  renderizadores de cada página
+   ═══════════════════════════════════════════ */
+
+/* ─── DASHBOARD ─────────────────────────────────────── */
 function renderDashboard() {
   const today = todayStr();
   const d = new Date();
   document.getElementById("hero-date").textContent =
     "Dados baseados em " + d.toLocaleDateString("pt-BR");
 
+  // métricas
   const hoje = solicitacoes.filter(s => s.status === "Aprovado" && today >= s.inicio && today <= s.fim).length;
   const cap  = Math.round((10 - hoje) / 10 * 100);
   const prox = solicitacoes.filter(s => {
@@ -18,6 +24,7 @@ function renderDashboard() {
   document.getElementById("m-prox").textContent = prox;
   document.getElementById("m-pend").innerHTML   = `${pend} <span style="font-size:14px;font-weight:400">Na fila</span>`;
 
+  // tabela solicitações
   const tbody = document.getElementById("sol-tbody");
   if (!solicitacoes.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Nenhuma solicitação registrada.</td></tr>`; return; }
 
@@ -34,6 +41,7 @@ function renderDashboard() {
   }).join("");
 }
 
+/* ─── CALENDÁRIO ─────────────────────────────────────── */
 function renderCalendario() {
   const container = document.getElementById("cal-container");
   const today = todayStr();
@@ -46,19 +54,22 @@ function renderCalendario() {
   for (let m = 0; m < 12; m++) {
     const year = 2026;
     const monthDate = new Date(year, m, 1);
+    // skip months already fully passed
     const lastDay = new Date(year, m + 1, 0);
     if (lastDay < now && lastDay.toISOString().slice(0,10) < today) continue;
 
     const daysInMonth = lastDay.getDate();
-    const firstDow    = monthDate.getDay();
+    const firstDow    = monthDate.getDay(); // 0=Sun
     const monthLabel  = `${monthNames[m]} / ${year}`;
 
+    // solicitações aprovadas que tocam este mês
     const monthStart = `${year}-${String(m+1).padStart(2,"0")}-01`;
     const monthEnd   = `${year}-${String(m+1).padStart(2,"0")}-${String(daysInMonth).padStart(2,"0")}`;
     const activeSols = solicitacoes.filter(s =>
       s.status === "Aprovado" && s.inicio <= monthEnd && s.fim >= monthStart
     );
 
+    // sidebar list
     let sideItems = activeSols.length
       ? activeSols.map(s => {
           const t = getTeam(s.mat);
@@ -69,10 +80,13 @@ function renderCalendario() {
         }).join("")
       : `<p class="cal-empty">Nenhuma saída programada.</p>`;
 
+    // day cells
     let cells = "";
+    // dow headers
     const dowRow = dowNames.map((d,i) =>
       `<div class="cal-dow${i===0||i===6?" weekend":""}">${d}</div>`).join("");
 
+    // empty leading cells
     for (let e = 0; e < firstDow; e++) {
       cells += `<div class="cal-day other-month weekend"></div>`;
     }
@@ -83,6 +97,7 @@ function renderCalendario() {
       const isWknd  = dow === 0 || dow === 6;
       const isToday = dateStr === today;
 
+      // chips for this day
       const chips = activeSols
         .filter(s => dateStr >= s.inicio && dateStr <= s.fim)
         .map(s => {
@@ -96,6 +111,7 @@ function renderCalendario() {
       </div>`;
     }
 
+    // trailing cells
     const totalCells = firstDow + daysInMonth;
     const trailing   = (7 - (totalCells % 7)) % 7;
     for (let t = 0; t < trailing; t++) {
@@ -121,6 +137,7 @@ function renderCalendario() {
   container.innerHTML = html || `<div class="card"><p class="empty-row">Nenhum mês futuro a exibir.</p></div>`;
 }
 
+/* ─── PEDIDO ─────────────────────────────────────────── */
 function initPedidoPage() {
   const sel = document.getElementById("f-nome");
   TEAM.forEach(t => {
@@ -184,6 +201,7 @@ function showAlert(el, msg) {
   el.style.display = "flex";
 }
 
+/* ─── APROVAÇÃO ──────────────────────────────────────── */
 let currentSolId = null;
 
 function doLogin() {
@@ -197,7 +215,9 @@ function doLogin() {
   }
 }
 
-function initAprovPage() {}
+function initAprovPage() {
+  // allow Enter key on password field (already on onkeydown in HTML)
+}
 
 function renderAprovacoes() {
   const pend  = solicitacoes.filter(s => s.status === "Pendente").length;
@@ -231,6 +251,8 @@ function renderAprovacoes() {
       </tr>`;
     }).join("");
   }
+
+  // conflitos globais
   renderConflitos();
 }
 
@@ -239,6 +261,7 @@ function renderConflitos() {
   const aprov = solicitacoes.filter(s => s.status === "Aprovado");
   const warns = [];
 
+  // simultaneidade
   const dayMap = {};
   aprov.forEach(s => {
     let d = new Date(s.inicio);
@@ -267,8 +290,9 @@ function openParecer(id) {
   const t = getTeam(s.mat);
   const warns = checkConflitos(s);
 
-  document.getElementById("parecer-title").textContent = `Parecer: ${t.name}`;
-  document.getElementById("parecer-info").textContent  =
+  document.getElementById("parecer-title").textContent =
+    `Parecer: ${t.name}`;
+  document.getElementById("parecer-info").textContent =
     `Período: ${fmtDate(s.inicio)} a ${fmtDate(s.fim)} (${diffDays(s.inicio,s.fim)} dias) · ${s.parcela}`;
   document.getElementById("parecer-obs").value = "";
 
@@ -280,6 +304,7 @@ function openParecer(id) {
   } else {
     palert.style.display = "none";
   }
+
   document.getElementById("parecer-overlay").style.display = "flex";
 }
 
@@ -299,12 +324,15 @@ function decidir(status) {
   renderAprovacoes();
 }
 
+/* ─── EQUIPE ─────────────────────────────────────────── */
 function renderEquipe() {
   const tbody = document.getElementById("equipe-tbody");
   tbody.innerHTML = TEAM.map(t => `
     <tr>
       <td style="text-align:center;font-weight:700;color:#6b7280">#${t.seniority}</td>
-      <td><div class="server-name">${t.name}</div></td>
+      <td>
+        <div class="server-name">${t.name}</div>
+      </td>
       <td>
         <div class="cargo-badge">${t.cargo}</div><br>
         <span class="ch-badge">${t.carga}h</span>
@@ -320,4 +348,168 @@ function renderEquipe() {
         </div>
       </td>
     </tr>`).join("");
+}
+
+/* ─── EQUIPE – CRUD ──────────────────────────────────── */
+let editingMat = null;
+let deletingMat = null;
+
+function switchTab(tab, btn) {
+  document.querySelectorAll(".eq-tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab-view").style.display = tab === "view" ? "block" : "none";
+  document.getElementById("tab-edit").style.display = tab === "edit" ? "block" : "none";
+}
+
+function doEqLogin() {
+  const pwd = document.getElementById("eq-pwd").value;
+  if (pwd === SENHA_GERENCIA) {
+    document.getElementById("eq-login-gate").style.display = "none";
+    document.getElementById("eq-panel").style.display = "block";
+    renderEqManage();
+    renderCatsList();
+  } else {
+    document.getElementById("eq-err").style.display = "block";
+  }
+}
+
+function initEquipePage() {
+  renderEqManage();
+  renderCatsList();
+}
+
+function renderEqManage() {
+  const tbody = document.getElementById("eq-manage-tbody");
+  if (!tbody) return;
+  const sorted = [...TEAM].sort((a,b) => a.seniority - b.seniority);
+  tbody.innerHTML = sorted.map(t => `
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#6b7280">${t.seniority}º</td>
+      <td><strong style="color:#1B3A8C;font-size:12px">${t.name}</strong><br>
+          <span style="font-size:11px;color:#9ca3af">${t.short}</span></td>
+      <td style="font-size:12px">${t.mat}</td>
+      <td><span class="cargo-badge">${t.cargo}</span></td>
+      <td style="text-align:center"><span class="ch-badge">${t.carga}h</span></td>
+      <td style="text-align:center">${t.filhos
+        ? '<span style="color:#d97706;font-weight:700">★ Sim</span>'
+        : '<span style="color:#9ca3af">Não</span>'}</td>
+      <td><div class="chip-wrap">${t.cats.map(c=>`<span class="chip">${c}</span>`).join("")}</div></td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn-icon" onclick="openEqModal('${t.mat}')" title="Editar">
+            <i class="fa-solid fa-pencil"></i>
+          </button>
+          <button class="btn-icon reject" onclick="openDelModal('${t.mat}')" title="Excluir">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+function renderCatsList() {
+  const el = document.getElementById("cats-list");
+  if (!el) return;
+  el.innerHTML = CATS.map(c => `<span class="chip">${c}</span>`).join("");
+}
+
+function openEqModal(mat) {
+  editingMat = mat || null;
+  const modal = document.getElementById("eq-modal");
+  document.getElementById("eq-modal-alert").style.display = "none";
+
+  // Build category checkboxes
+  const checksEl = document.getElementById("eq-cats-check");
+  checksEl.innerHTML = CATS.map(c => `
+    <label class="cat-check-label">
+      <input type="checkbox" name="eq-cat" value="${c}"> ${c}
+    </label>`).join("");
+
+  if (mat) {
+    const t = getTeam(mat);
+    document.getElementById("eq-modal-title").textContent = "Editar Servidor";
+    document.getElementById("eq-f-name").value     = t.name;
+    document.getElementById("eq-f-mat").value      = t.mat;
+    document.getElementById("eq-f-mat").disabled   = true;
+    document.getElementById("eq-f-cargo").value    = t.cargo;
+    document.getElementById("eq-f-carga").value    = String(t.carga);
+    document.getElementById("eq-f-seniority").value= t.seniority;
+    document.getElementById("eq-f-filhos").value   = String(t.filhos);
+    document.getElementById("eq-f-short").value    = t.short;
+    document.querySelectorAll("input[name='eq-cat']").forEach(cb => {
+      if (t.cats.includes(cb.value)) cb.checked = true;
+    });
+  } else {
+    document.getElementById("eq-modal-title").textContent = "Novo Servidor";
+    document.getElementById("eq-f-name").value     = "";
+    document.getElementById("eq-f-mat").value      = "";
+    document.getElementById("eq-f-mat").disabled   = false;
+    document.getElementById("eq-f-cargo").value    = "Técnico Administrativo";
+    document.getElementById("eq-f-carga").value    = "40";
+    document.getElementById("eq-f-seniority").value= TEAM.length + 1;
+    document.getElementById("eq-f-filhos").value   = "false";
+    document.getElementById("eq-f-short").value    = "";
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeEqModal() {
+  document.getElementById("eq-modal").style.display = "none";
+  document.getElementById("eq-f-mat").disabled = false;
+  editingMat = null;
+}
+
+function saveServidor() {
+  const name     = document.getElementById("eq-f-name").value.trim().toUpperCase();
+  const mat      = document.getElementById("eq-f-mat").value.trim();
+  const cargo    = document.getElementById("eq-f-cargo").value;
+  const carga    = parseInt(document.getElementById("eq-f-carga").value);
+  const seniority= parseInt(document.getElementById("eq-f-seniority").value);
+  const filhos   = document.getElementById("eq-f-filhos").value === "true";
+  const short    = document.getElementById("eq-f-short").value.trim().toUpperCase();
+  const cats     = [...document.querySelectorAll("input[name='eq-cat']:checked")].map(c => c.value);
+  const alertEl  = document.getElementById("eq-modal-alert");
+
+  if (!name || !mat || !short || !seniority) {
+    alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Preencha todos os campos obrigatórios.';
+    alertEl.style.display = "flex"; return;
+  }
+  if (!editingMat && TEAM.find(t => t.mat === mat)) {
+    alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Matrícula já cadastrada.';
+    alertEl.style.display = "flex"; return;
+  }
+
+  if (editingMat) {
+    const idx = TEAM.findIndex(t => t.mat === editingMat);
+    TEAM[idx] = { mat, name, short, cargo, carga, seniority, filhos, cats };
+  } else {
+    TEAM.push({ mat, name, short, cargo, carga, seniority, filhos, cats });
+  }
+
+  saveTeam();
+  closeEqModal();
+  renderEquipe();
+  renderEqManage();
+}
+
+function openDelModal(mat) {
+  deletingMat = mat;
+  const t = getTeam(mat);
+  document.getElementById("del-name").textContent = t.name;
+  document.getElementById("del-modal").style.display = "flex";
+}
+
+function closeDelModal() {
+  document.getElementById("del-modal").style.display = "none";
+  deletingMat = null;
+}
+
+function confirmDelete() {
+  const idx = TEAM.findIndex(t => t.mat === deletingMat);
+  if (idx > -1) TEAM.splice(idx, 1);
+  saveTeam();
+  closeDelModal();
+  renderEquipe();
+  renderEqManage();
 }
